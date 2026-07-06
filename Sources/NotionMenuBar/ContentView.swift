@@ -254,7 +254,18 @@ struct ContentView: View {
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
             if !showingSettings && store.isConfigured {
-                WeekModeToggle(isOn: store.weekMode, lunarMode: store.lunarMode) {
+                MinimalPillToggle(isOn: store.minimalMode, lunarMode: store.lunarMode) {
+                    withAnimation(.snappy(duration: 0.25)) {
+                        store.setMinimalMode(!store.minimalMode)
+                    }
+                }
+                HeaderIconToggle(
+                    systemName: "calendar",
+                    help: "Week mode",
+                    accessibilityLabel: "Week mode",
+                    isOn: store.weekMode,
+                    lunarMode: store.lunarMode
+                ) {
                     withAnimation(.snappy(duration: 0.25)) {
                         store.setWeekMode(!store.weekMode)
                     }
@@ -324,7 +335,7 @@ struct ContentView: View {
             draggableRow(for: task)
         }
         bottomDropTarget
-        if !store.tomorrowTasks.isEmpty {
+        if !store.minimalMode && !store.tomorrowTasks.isEmpty {
             sectionHeader("Tomorrow")
             ForEach(store.tomorrowTasks) { task in
                 taskRow(for: task)
@@ -828,7 +839,64 @@ private struct StarButton: View {
     }
 }
 
-private struct WeekModeToggle: View {
+private struct MinimalPillToggle: View {
+    let isOn: Bool
+    let lunarMode: Bool
+    let action: () -> Void
+
+    private let trackWidth: CGFloat = 18
+    private let trackHeight: CGFloat = 9
+    private let inset: CGFloat = 1.5
+
+    private var knobDiameter: CGFloat { trackHeight - inset * 2 }
+    private var knobTrailingOffset: CGFloat { trackWidth - knobDiameter - inset }
+    private var knobOffset: CGFloat { isOn ? knobTrailingOffset : inset }
+
+    var body: some View {
+        Button(action: action) {
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(trackColor)
+                    .frame(width: trackWidth, height: trackHeight)
+                    .opacity(isOn ? 1 : 0)
+
+                Capsule()
+                    .strokeBorder(trackColor, lineWidth: 1)
+                    .frame(width: trackWidth, height: trackHeight)
+                    .opacity(isOn ? 0 : 1)
+
+                Circle()
+                    .fill(knobColor)
+                    .frame(width: knobDiameter, height: knobDiameter)
+                    .offset(x: knobOffset)
+            }
+            .animation(.snappy(duration: 0.25), value: isOn)
+            .frame(width: 20, height: 20)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Minimal — hide tomorrow's tasks")
+        .accessibilityLabel("Minimal")
+        .accessibilityValue(isOn ? "On" : "Off")
+    }
+
+    private var trackColor: Color {
+        if lunarMode {
+            return isOn ? LunarTheme.primaryText : LunarTheme.secondaryText
+        }
+        return isOn ? Color.primary : Color.secondary
+    }
+
+    private var knobColor: Color {
+        if lunarMode { return LunarTheme.secondaryText }
+        return Color.secondary
+    }
+}
+
+private struct HeaderIconToggle: View {
+    let systemName: String
+    let help: String
+    let accessibilityLabel: String
     let isOn: Bool
     let lunarMode: Bool
     let action: () -> Void
@@ -836,7 +904,7 @@ private struct WeekModeToggle: View {
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: "calendar")
+            Image(systemName: systemName)
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(iconStyle)
                 .frame(width: 20, height: 20)
@@ -847,8 +915,8 @@ private struct WeekModeToggle: View {
         .onHover { hovering in
             withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering }
         }
-        .help("Week mode")
-        .accessibilityLabel("Week mode")
+        .help(help)
+        .accessibilityLabel(accessibilityLabel)
         .accessibilityValue(isOn ? "On" : "Off")
     }
 

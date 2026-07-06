@@ -30,6 +30,7 @@ Notion Quick Bar lives in your menu bar as a post-it note icon. The icon shows h
 Click the icon—or press **⌥T** anywhere on your Mac—to open a floating panel where you can:
 
 - View tasks due today, overdue, or undated
+- Toggle **Minimal** in the header to hide tomorrow’s tasks for a tighter Today-only view
 - Add new tasks with natural-language dates (`email Sam Friday`, `buy milk tomorrow`)
 - Mark tasks complete with a smooth animation and optional undo
 - Star tasks as **Priority** (synced to Notion)
@@ -216,8 +217,15 @@ Press **Esc** or click outside to close.
 | Section | Shows |
 |---------|-------|
 | **Today** | Undated tasks, tasks due today, and overdue tasks |
-| **Tomorrow** | Tasks due tomorrow (when any exist) |
+| **Tomorrow** | Tasks due tomorrow (when any exist; hidden when **Minimal** is on) |
 | **Week** | Tasks due 2–7 days out (toggle with the calendar icon in the header) |
+
+**Header toggles** (left of the gear):
+
+| Control | Effect |
+|---------|--------|
+| **Minimal** (pill toggle) | Hides the Tomorrow section so the panel shows only Today (and Week, if enabled) |
+| **Week** (calendar icon) | Shows or hides tasks due 2–7 days out |
 
 The menu bar badge counts **Today** tasks only.
 
@@ -310,7 +318,7 @@ ContentView (SwiftUI panel)
      ▼
 TaskStore (state + sync)
      ├── Keychain ── integration token, database ID
-     ├── UserDefaults ── task order, appearance, week mode
+     ├── UserDefaults ── task order, appearance, minimal mode, week mode
      └── NotionClient ── HTTPS to api.notion.com
               │
               ▼
@@ -329,7 +337,7 @@ TaskStore (state + sync)
 Tasks are grouped by due date relative to today:
 
 - **Today** — no date, due before tomorrow, or overdue
-- **Tomorrow** — due exactly tomorrow
+- **Tomorrow** — due exactly tomorrow (optional; toggle **Minimal** in the header to hide)
 - **Week sections** — one section per day, days 2–7 ahead (when Week mode is on)
 
 ### Menu bar icon
@@ -348,7 +356,7 @@ The icon is a custom-drawn post-it note stack:
 |------|---------|
 | Notion integration token | macOS Keychain (`When Unlocked, This Device Only`) |
 | Database ID | macOS Keychain |
-| Task order, appearance prefs | UserDefaults (local) |
+| Task order, appearance prefs, minimal/week mode | UserDefaults (local) |
 | Task titles & content | Fetched from Notion over HTTPS; displayed in the panel only |
 
 - Credentials are **never** hardcoded in source or logged to the console

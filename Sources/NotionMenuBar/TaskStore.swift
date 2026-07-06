@@ -26,6 +26,7 @@ final class TaskStore: ObservableObject {
     @Published private(set) var lightMode: Bool
     @Published private(set) var lunarMode: Bool
     @Published private(set) var weekMode: Bool
+    @Published private(set) var minimalMode: Bool
     @Published private(set) var undoableDoneTask: TaskItem?
 
     enum AddState: Equatable {
@@ -66,6 +67,7 @@ final class TaskStore: ObservableObject {
     private static let lightModeKey = "lightMode"
     private static let lunarModeKey = "lunarMode"
     private static let weekModeKey = "weekMode"
+    private static let minimalModeKey = "minimalMode"
 
     init() {
         self.token = KeychainHelper.read(account: Self.tokenAccount) ?? ""
@@ -79,6 +81,7 @@ final class TaskStore: ObservableObject {
         self.lunarMode = storedLunarMode
         self.lightMode = !storedLunarMode && UserDefaults.standard.bool(forKey: Self.lightModeKey)
         self.weekMode = UserDefaults.standard.bool(forKey: Self.weekModeKey)
+        self.minimalMode = UserDefaults.standard.bool(forKey: Self.minimalModeKey)
         savedOrderIds = UserDefaults.standard.stringArray(forKey: Self.orderKey) ?? []
 
         if keychainDatabaseId == nil, !cleanedDatabaseId.isEmpty {
@@ -97,7 +100,9 @@ final class TaskStore: ObservableObject {
     }
 
     var visibleCount: Int {
-        todayTasks.count + tomorrowTasks.count + (weekMode ? weekSections.reduce(0) { $0 + $1.tasks.count } : 0)
+        todayTasks.count
+            + (minimalMode ? 0 : tomorrowTasks.count)
+            + (weekMode ? weekSections.reduce(0) { $0 + $1.tasks.count } : 0)
     }
 
     private func regroup() {
@@ -144,7 +149,9 @@ final class TaskStore: ObservableObject {
     }
 
     private func updateKeyboardTasks() {
-        keyboardTasks = todayTasks + tomorrowTasks + (weekMode ? weekSections.flatMap(\.tasks) : [])
+        keyboardTasks = todayTasks
+            + (minimalMode ? [] : tomorrowTasks)
+            + (weekMode ? weekSections.flatMap(\.tasks) : [])
     }
 
     // MARK: - Credentials
@@ -196,6 +203,12 @@ final class TaskStore: ObservableObject {
     func setWeekMode(_ enabled: Bool) {
         weekMode = enabled
         UserDefaults.standard.set(enabled, forKey: Self.weekModeKey)
+        updateKeyboardTasks()
+    }
+
+    func setMinimalMode(_ enabled: Bool) {
+        minimalMode = enabled
+        UserDefaults.standard.set(enabled, forKey: Self.minimalModeKey)
         updateKeyboardTasks()
     }
 
