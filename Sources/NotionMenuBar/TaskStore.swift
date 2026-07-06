@@ -82,6 +82,7 @@ final class TaskStore: ObservableObject {
         self.lightMode = !storedLunarMode && UserDefaults.standard.bool(forKey: Self.lightModeKey)
         self.weekMode = UserDefaults.standard.bool(forKey: Self.weekModeKey)
         self.minimalMode = UserDefaults.standard.bool(forKey: Self.minimalModeKey)
+        UserDefaults.standard.removeObject(forKey: "glassMode")
         savedOrderIds = UserDefaults.standard.stringArray(forKey: Self.orderKey) ?? []
 
         if keychainDatabaseId == nil, !cleanedDatabaseId.isEmpty {

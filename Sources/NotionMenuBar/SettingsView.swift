@@ -125,6 +125,7 @@ struct SettingsView: View {
 
     private var fieldBackground: Color {
         if store.lunarMode { return LunarTheme.fieldFill }
+        if store.lightMode { return LightModeTheme.fieldFill }
         return Color.primary.opacity(0.06)
     }
 

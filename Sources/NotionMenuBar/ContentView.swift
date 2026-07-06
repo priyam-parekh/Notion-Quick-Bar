@@ -29,6 +29,15 @@ enum LightModeTheme {
     static let overdueRed = Color(red: 0.72, green: 0.15, blue: 0.12)
     static let successGreen = Color(red: 0.18, green: 0.54, blue: 0.28)
     static let reorderBlue = Color(red: 0.20, green: 0.38, blue: 0.68)
+    /// Ultra-thin blur for translucency; white overlays add brightness without a heavy fill.
+    static let panelMaterial: Material = .ultraThinMaterial
+    static let panelOverlay = Color.white.opacity(0.28)
+    static let panelHighlight = Color.white.opacity(0.10)
+    static let panelBorder = Color.white.opacity(0.32)
+    static let fieldFill = Color.white.opacity(0.16)
+    static let fieldFillFocused = Color.white.opacity(0.22)
+    static let hoverFill = Color.white.opacity(0.14)
+    static let selectionFill = Color.white.opacity(0.24)
 }
 
 enum DefaultTheme {
@@ -189,10 +198,23 @@ struct ContentView: View {
                     )
             } else if store.lightMode {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.regularMaterial)
+                    .fill(LightModeTheme.panelMaterial)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color.white.opacity(0.16))
+                            .fill(LightModeTheme.panelOverlay)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        LightModeTheme.panelHighlight,
+                                        Color.clear
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                     )
             } else {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -211,6 +233,7 @@ struct ContentView: View {
 
     private var panelBorderColor: Color {
         if store.lunarMode { return LunarTheme.border }
+        if store.lightMode { return LightModeTheme.panelBorder }
         return .clear
     }
 
@@ -651,6 +674,9 @@ struct ContentView: View {
         if store.lunarMode {
             return fieldFocused ? LunarTheme.fieldFill.opacity(1.35) : LunarTheme.fieldFill
         }
+        if store.lightMode {
+            return fieldFocused ? LightModeTheme.fieldFillFocused : LightModeTheme.fieldFill
+        }
         return Color.primary.opacity(fieldFocused ? 0.09 : 0.06)
     }
 
@@ -1049,9 +1075,14 @@ private struct TaskRow: View {
     private var rowBackground: Color {
         if isSelected {
             if lunarMode { return LunarTheme.selectionFill }
+            if lightMode { return LightModeTheme.selectionFill }
             return Color.accentColor.opacity(0.16)
         }
-        if isHovering { return lunarMode ? LunarTheme.hoverFill : Color.primary.opacity(0.07) }
+        if isHovering {
+            if lunarMode { return LunarTheme.hoverFill }
+            if lightMode { return LightModeTheme.hoverFill }
+            return Color.primary.opacity(0.07)
+        }
         return .clear
     }
 
