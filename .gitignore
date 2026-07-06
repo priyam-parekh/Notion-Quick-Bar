@@ -1,0 +1,10 @@
+.build/
+.swiftpm/
+*.xcodeproj/
+DerivedData/
+.DS_Store
+.claude/
+*.app/
+# Local AI/dev session logs — may contain personal IDs or credentials
+claude-code-7-5-2026.txt
+claude-code-*.txt
